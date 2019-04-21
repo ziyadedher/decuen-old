@@ -5,6 +5,7 @@ import numpy as np  # type: ignore
 import tensorflow as tf  # type: ignore
 
 from decuen.policies.policy import Policy
+from decuen.policies.greedy_policy import GreedyPolicy
 
 
 class EpsilonGreedyPolicy(Policy):
@@ -14,6 +15,7 @@ class EpsilonGreedyPolicy(Policy):
 
     _annealing_method: AnnealingMethod
     _annealing_constant: float
+    _greedy_policy: GreedyPolicy
     num_actions: int
     max_epsilon: float
     min_epsilon: float
@@ -23,13 +25,18 @@ class EpsilonGreedyPolicy(Policy):
                  annealing_method: AnnealingMethod, annealing_constant: float) -> None:
         self._annealing_method = annealing_method
         self._annealing_constant = annealing_constant
+        self._greedy_policy = GreedyPolicy()
         self.num_actions = num_actions
         self.max_epsilon = max_epsilon
         self.min_epsilon = min_epsilon
         self.epsilon = max_epsilon
 
     def choose_action(self, actions: np.ndarray, current_step: Optional[int] = None) -> int:
-        action = np.argmax(actions) if np.random.rand() <= self.epsilon else np.random.randint(0, self.num_actions)
+        action: int = (
+            self._greedy_policy.choose_action(actions)
+            if np.random.rand() > self.epsilon
+            else np.random.randint(0, self.num_actions)
+        )
         self._anneal_epsilon(current_step)
         return action
 
