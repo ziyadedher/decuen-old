@@ -2,7 +2,7 @@ from typing import Tuple
 
 import numpy as np  # type: ignore
 
-from decuen.agents.agent import Agent
+from decuen.agents import Agent
 from decuen.policies.policy import Policy
 from decuen.experience.experience_manager import ExperienceManager
 
