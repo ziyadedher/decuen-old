@@ -48,8 +48,8 @@ class Agent(Generic[ActionType]):
         raise NotImplementedError()
 
     def _validate_state(self, state: np.ndarray) -> None:
-        if state.shape != self.state_shape:  # type: ignore
-            message = f"Got state shape {state.shape} while agent expects {self.state_shape}."  # type: ignore
+        if state.shape != self.state_shape:
+            message = f"Got state shape {state.shape} while agent expects {self.state_shape}."
             raise ValueError(message)
 
     def _validate_action(self, action: ActionType) -> None:

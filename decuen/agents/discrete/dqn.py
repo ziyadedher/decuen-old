@@ -51,14 +51,20 @@ class DQNAgent(DiscreteAgent):
         if experience_sample is None:
             return
 
-        original_states = np.array([experience.original_state for experience in experience_sample])
-        new_states = np.array([experience.new_state for experience in experience_sample])
+        original_states = np.array([
+            experience.original_state
+            for experience in experience_sample
+        ])
+        new_states = np.array([
+            experience.new_state
+            for experience in experience_sample
+        ])
 
         value_predictions = target_model.predict_on_batch(new_states)
         discounted_state_values = np.zeros((len(experience_sample), self.num_actions))
-        for i, experience in enumerate(experience_sample):
-            discounted_state_values[i][experience.action] = experience.reward + self.discount_factor * (
-                np.max(value_predictions[i]) if not experience.done else 0
+        for experience, value, pred in zip(experience_sample, discounted_state_values, value_predictions):
+            value[experience.action] = experience.reward + self.discount_factor * (
+                np.max(pred) if not experience.done else 0
             )
 
         loss = model.train_on_batch(original_states, discounted_state_values)

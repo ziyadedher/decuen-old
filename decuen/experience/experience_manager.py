@@ -18,5 +18,5 @@ class ExperienceManager(Generic[ActionType]):
     def experience(self, experience: Experience[ActionType]) -> None:
         raise NotImplementedError()
 
-    def sample(self) -> Optional[Collection[Experience[ActionType]]]:
+    def sample(self, size: Optional[int] = None) -> Optional[Collection[Experience[ActionType]]]:
         raise NotImplementedError()

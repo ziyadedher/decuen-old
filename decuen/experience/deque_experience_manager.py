@@ -20,7 +20,8 @@ class DequeExperienceManager(ExperienceManager[ActionType]):
     def experience(self, experience: Experience[ActionType]) -> None:
         self.memory.append(experience)
 
-    def sample(self) -> Optional[List[Experience[ActionType]]]:
-        if len(self.memory) < self.sample_size:
+    def sample(self, size: Optional[int] = None) -> Optional[List[Experience[ActionType]]]:
+        sample_size = size if size else self.sample_size
+        if len(self.memory) < sample_size:
             return None
-        return random.sample(self.memory, self.sample_size)
+        return random.sample(self.memory, sample_size)

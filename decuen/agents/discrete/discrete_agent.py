@@ -25,6 +25,6 @@ class DiscreteAgent(Agent[ActionType]):
         raise NotImplementedError()
 
     def _validate_action(self, action: ActionType) -> None:
-        if action < 0 or action >= self.num_actions:  # type: ignore
-            message = f"Got out of range [0, {self.num_actions - 1}] action index {action}."  # type: ignore
+        if action < 0 or action >= self.num_actions:
+            message = f"Got out of range [0, {self.num_actions - 1}] action index {action}."
             raise ValueError(message)

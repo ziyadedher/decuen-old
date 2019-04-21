@@ -23,7 +23,7 @@ def main() -> None:
         layers.Dense(32, activation=activations.relu),
         layers.Dense(env.action_space.n, activation=activations.relu),
     ])
-    model.compile(optimizers.SGD(lr=0.01), loss=losses.mean_squared_error)
+    model.compile(optimizers.Adam(lr=0.0025), loss=losses.mean_squared_error)
 
     policy = EpsilonGreedyPolicy(
         env.action_space.n,
@@ -38,7 +38,7 @@ def main() -> None:
         env.observation_space.shape, policy, experience_manager,
         env.action_space.n, model,
         discount_factor=0.99,
-        target_update_rate=500,
+        target_update_rate=1,
     )
 
     for i_episode in range(2000):
@@ -49,9 +49,10 @@ def main() -> None:
                 env.render()
             action = agent.act(state)
             new_state, reward, done, _ = env.step(action)
-            agent.experience(Experience(state, action, new_state, reward, done))
-            print(reward)
+            experience = Experience(state, action, new_state, reward, done)  # type: ignore
             state = new_state
+
+            agent.experience(experience)
 
             total_reward += reward
             if done:
