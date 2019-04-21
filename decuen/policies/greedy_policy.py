@@ -6,6 +6,13 @@ from decuen.policies.policy import Policy
 
 
 class GreedyPolicy(Policy):
+    """
+    Implementation of epsilon-greedy policy for DQN and online network exploration
+    """
+
     def choose_action(self, actions: np.ndarray, current_step: Optional[int] = None) -> int:
+        """
+        Returns the optimal action based on maximal reward value garnered
+        """
         action: int = np.argmax(actions)
         return action

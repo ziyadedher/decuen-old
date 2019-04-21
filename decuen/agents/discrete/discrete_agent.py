@@ -11,10 +11,18 @@ ActionType = int
 
 
 class DiscreteAgent(Agent[ActionType]):
+    """
+    Discrete DQN agent operating on a discrete action space.
+    """
+
+    # the number of actions in action space
     num_actions: int
 
     def __init__(self, state_shape: Tuple[int, ...], policy: Policy, experience_manager: ExperienceManager[ActionType],
                  num_actions: int) -> None:
+        """
+        Construct state setup, policy, action number, and set experience manager
+        """
         super().__init__(state_shape, policy, experience_manager)
         self.num_actions = num_actions
 
@@ -25,6 +33,9 @@ class DiscreteAgent(Agent[ActionType]):
         raise NotImplementedError()
 
     def _validate_action(self, action: ActionType) -> None:
+        """
+        Ensures that actions are chosen within range
+        """
         if action < 0 or action >= self.num_actions:
             message = f"Got out of range [0, {self.num_actions - 1}] action index {action}."
             raise ValueError(message)

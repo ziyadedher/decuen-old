@@ -9,6 +9,9 @@ from decuen.policies.greedy_policy import GreedyPolicy
 
 
 class EpsilonGreedyPolicy(Policy):
+    """
+    Standard epsilon-greedy policy
+    """
     class AnnealingMethod(Enum):
         LINEAR = 0
         EXPONENTIAL = 1
