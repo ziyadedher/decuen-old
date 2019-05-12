@@ -1,3 +1,5 @@
+"""Action choice policy for RL agent."""
+
 from typing import Optional
 from enum import Enum
 
@@ -13,6 +15,7 @@ class EpsilonGreedyPolicy(Policy):
     Standard epsilon-greedy policy
     """
     class AnnealingMethod(Enum):
+        """Class to group all hard-coded variables."""
         LINEAR = 0
         EXPONENTIAL = 1
 

@@ -1,3 +1,5 @@
+"""Generic container for different Agent experiences."""
+
 from typing import Generic, TypeVar
 
 import numpy as np  # type: ignore
@@ -7,8 +9,7 @@ ActionType = TypeVar("ActionType")
 
 
 class Experience(Generic[ActionType]):
-    """
-    Experience object to store an Agent's experience at each time step
+    """Experience object to store an Agent's experience at each time step
     """
 
     # the current state

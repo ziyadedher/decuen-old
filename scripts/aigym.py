@@ -7,7 +7,7 @@ from tensorflow.keras import models, layers, activations, optimizers, losses  # 
 
 from decuen.policies import EpsilonGreedyPolicy
 from decuen.experience import Experience, DequeExperienceManager
-from decuen.agents import DQNAgent
+from decuen.agents import DQNAgent, DDQNAgent
 
 
 def main() -> None:
@@ -19,8 +19,9 @@ def main() -> None:
     summary_writer.set_as_default()
 
     model = models.Sequential([
-        layers.Dense(64, activation=activations.relu, input_shape=env.observation_space.shape),
-        layers.Dense(32, activation=activations.relu),
+        layers.Dense(32, activation=activations.relu, input_shape=env.observation_space.shape),
+        layers.Dense(64, activation=activations.relu),
+        layers.Dense(128, activation=activations.relu),
         layers.Dense(env.action_space.n, activation=activations.relu),
     ])
     model.compile(optimizers.Adam(lr=0.0025), loss=losses.mean_squared_error)
@@ -34,11 +35,11 @@ def main() -> None:
         sample_size=64,
         memory_capacity=1 << 14,
     )
-    agent = DQNAgent(
+    agent = DDQNAgent(
         env.observation_space.shape, policy, experience_manager,
         env.action_space.n, model,
         discount_factor=0.99,
-        target_update_rate=1,
+        target_update_rate=1000,
     )
 
     for i_episode in range(2000):

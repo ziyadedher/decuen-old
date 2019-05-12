@@ -1,3 +1,4 @@
+"""Agent operating on discrete action space."""
 from typing import Tuple
 
 import numpy as np  # type: ignore

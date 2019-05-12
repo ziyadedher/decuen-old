@@ -1,3 +1,4 @@
+"""Abstract policy for action."""
 from typing import Optional
 
 import numpy as np  # type: ignore

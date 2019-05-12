@@ -1,3 +1,5 @@
+"""Experience manager for reinforcement learning agent."""
+
 from typing import Generic, TypeVar, Optional, Collection
 
 from decuen.experience.experience import Experience
