@@ -1,6 +1,6 @@
-"""Deep Q-Learning agent (DQN) based on the original DQN paper by Mnih et al. [1].
+"""Rainbow Deep RL Agent based on combinations of DQN extensions by Hessel et al. [1].
 
-[1] https://www.cs.toronto.edu/~vmnih/docs/dqn.pdf
+[1] https://arxiv.org/pdf/1710.02298.pdf
 """
 from typing import Tuple
 
@@ -8,16 +8,17 @@ import numpy as np  # type: ignore
 import tensorflow as tf  # type: ignore
 from tensorflow.keras import models  # type: ignore
 
+from decuen.agents.discrete.dqn import DQNAgent
+
 from decuen.policies.policy import Policy
 from decuen.experience.experience_manager import ExperienceManager
-from decuen.agents.discrete.discrete_agent import DiscreteAgent
 
 
 ActionType = int
 
 
-class DQNAgent(DiscreteAgent):
-    """Classical DQN agent for a discrete action space."""
+class RainbowAgent(DQNAgent):
+    """Rainbow extended DQN agent for a discrete action space."""
 
     # fixed number of steps per update
     _steps_since_update: int
@@ -57,13 +58,13 @@ class DQNAgent(DiscreteAgent):
         the target network upon current state analysis
         """
         self._steps_since_update += 1
-        self._train()
+        self._train(self.model, self.target_model)
 
         if self._steps_since_update >= self.target_update_rate:
             self._steps_since_update = 0
             self.target_model.set_weights(self.model.get_weights())
 
-    def _train(self) -> None:
+    def _train(self, model: models.Model, target_model: models.Model) -> None:
         """
         Samples an experience from the EM's states and generates the discounted state values
         for what will be trained against iteratively per experience, new state, and action
@@ -81,7 +82,7 @@ class DQNAgent(DiscreteAgent):
             for experience in experience_sample
         ])
 
-        value_predictions = self.target_model.predict_on_batch(new_states)
+        value_predictions = target_model.predict_on_batch(new_states)
         # generating the training target
         discounted_state_values = np.zeros((len(experience_sample), self.num_actions))
         for experience, value, pred in zip(experience_sample, discounted_state_values, value_predictions):
@@ -89,30 +90,8 @@ class DQNAgent(DiscreteAgent):
                 np.max(pred) if not experience.done else 0
             )
 
-        loss = self.model.train_on_batch(original_states, discounted_state_values)
+        loss = model.train_on_batch(original_states, discounted_state_values)
         tf.summary.scalar("loss", loss, step=self.step)  # pylint: disable=E1101
-
-        self._update_priorities()
-
-    def _update_priorities(self) -> None:
-        """for prioritized experience replay"""
-        original_states = np.array([
-            experience.original_state
-            for experience in self.experience_manager.memory
-        ])
-        new_states = np.array([
-            experience.new_state
-            for experience in self.experience_manager.memory
-        ])
-
-        # state to value
-        target_preds = self.target_model.predict_on_batch(new_states)
-        online_preds = self.model.predict_on_batch(original_states)
-
-        # absolute TD error
-        # value_predicted is array of size 5
-        for expr, target_pred, online_pred in zip(self.experience_manager.memory, target_preds, online_preds):
-            expr.priority = abs(expr.reward + self.discount_factor * max(target_pred) - online_pred[expr.action])
 
     def _validate_model(self, model: models.Model) -> None:
         """

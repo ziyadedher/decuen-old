@@ -6,7 +6,7 @@ import tensorflow as tf  # type: ignore
 from tensorflow.keras import models, layers, activations, optimizers, losses  # type: ignore
 
 from decuen.policies import EpsilonGreedyPolicy
-from decuen.experience import Experience, DequeExperienceManager
+from decuen.experience import Experience, DequeExperienceManager, PrioritizedExperienceManager
 from decuen.agents import DQNAgent, DDQNAgent
 
 
@@ -31,35 +31,42 @@ def main() -> None:
         max_epsilon=1, min_epsilon=0.05,
         annealing_method=EpsilonGreedyPolicy.AnnealingMethod.EXPONENTIAL, annealing_constant=1e-4,
     )
-    experience_manager: DequeExperienceManager[int] = DequeExperienceManager(
+    # experience_manager: DequeExperienceManager[int] = DequeExperienceManager(
+
+    experience_manager: PrioritizedExperienceManager[int] = PrioritizedExperienceManager(
         sample_size=64,
         memory_capacity=1 << 14,
+        omega=1,
     )
+    # DQNAgent
     agent = DDQNAgent(
         env.observation_space.shape, policy, experience_manager,
         env.action_space.n, model,
         discount_factor=0.99,
         target_update_rate=1000,
     )
+    
+    try:
+        for i_episode in range(500):
+            state = env.reset()
+            total_reward = 0
+            for timestep in range(500):
+                if i_episode % 10 == 0:
+                    env.render()
+                action = agent.act(state)
+                new_state, reward, done, _ = env.step(action)
+                experience = Experience(state, action, new_state, reward, done)  # type: ignore
+                state = new_state
 
-    for i_episode in range(2000):
-        state = env.reset()
-        total_reward = 0
-        for timestep in range(500):
-            if i_episode % 10 == 0:
-                env.render()
-            action = agent.act(state)
-            new_state, reward, done, _ = env.step(action)
-            experience = Experience(state, action, new_state, reward, done)  # type: ignore
-            state = new_state
+                agent.experience(experience)
 
-            agent.experience(experience)
-
-            total_reward += reward
-            if done:
-                print(f"Episode {i_episode + 1} finished after {timestep + 1} timesteps.")
-                tf.summary.scalar("reward/episode", total_reward, agent.step)  # pylint: disable=E1101
-                break
+                total_reward += reward
+                if done:
+                    print(f"Episode {i_episode + 1} finished after {timestep + 1} timesteps.")
+                    tf.summary.scalar("reward/episode", total_reward, agent.step)  # pylint: disable=E1101
+                    break
+    except KeyboardInterrupt:
+        print("Stopping...")
 
 
 if __name__ == '__main__':

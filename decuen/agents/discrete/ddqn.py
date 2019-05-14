@@ -21,15 +21,14 @@ class DDQNAgent(DQNAgent):
         the target network upon current state analysis
         """
         self._steps_since_update += 1
-        self._train(self.model, self.target_model)
-
+        self._train()
         if self._steps_since_update >= self.target_update_rate:
             self._steps_since_update = 0
             target_weights = self.target_model.get_weights()
             self.target_model.set_weights(self.model.get_weights())
             self.model.set_weights(target_weights)
 
-    def _train(self, model: models.Model, target_model: models.Model) -> None:
+    def _train(self) -> None:
         """
         Samples an experience from the EM's states and generates the discounted state values
         for what will be trained against iteratively per experience, new state, and action
@@ -47,8 +46,8 @@ class DDQNAgent(DQNAgent):
             for experience in experience_sample
         ])
 
-        value_predictions = target_model.predict_on_batch(new_states)
-        model_predictions = model.predict_on_batch(new_states)
+        value_predictions = self.target_model.predict_on_batch(new_states)
+        model_predictions = self.model.predict_on_batch(new_states)
 
         # generating the training target
         discounted_state_values = np.zeros((len(experience_sample), self.num_actions))
@@ -59,5 +58,5 @@ class DDQNAgent(DQNAgent):
                 value_pred[np.argmax(model_pred)] if not experience.done else 0
             )
 
-        loss = model.train_on_batch(original_states, discounted_state_values)
+        loss = self.model.train_on_batch(original_states, discounted_state_values)
         tf.summary.scalar("loss", loss, step=self.step)  # pylint: disable=E1101
